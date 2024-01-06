@@ -1,12 +1,15 @@
-document.addEventListener("DOMContentLoaded",removeElements())
-const observer = new MutationObserver(() => removeElements())
-observer.observe(document.getElementById("contents"),{childList: true, subtree: true})
+document.addEventListener("DOMContentLoaded",startObservers())
+function startObservers() {
+	const observer = new MutationObserver(() => removeElements())
+	observer.observe(document.getElementById("contents"),{childList: true, subtree: true})
+	removeElements()
+}
 
 function removeElements() {
 	const pElement = document.getElementById("contents")
 	if(pElement){
 		const pContainers = pElement.getElementsByTagName("ytd-item-section-renderer")
-		if(pContainers){
+		if(pContainers && pContainers.length){
 			removeTags(pContainers[pContainers.length - 1].children[2])
 		}
 	}
