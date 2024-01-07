@@ -15,7 +15,6 @@ function startPMObserver(r, obs) {
 		const observer = new MutationObserver(startSBObservers)
 		observer.observe(pmo,{childList: true})
 		if(obs != null){obs.disconnect()}
-		//maybe call determineWhichToRemoveFrom here?
 	} else if (obs == null){
 		startSuperObserver("page-manager")
 	}
@@ -50,31 +49,57 @@ function startSBObservers(r, obs) {
 
 function searchCallback(r,obs) {
 	const sElement = document.getElementById("page-manager").getElementsByTagName("ytd-search")[0]
+	if(!obs.hasOwnProperty("sytsections") || obs.syttitle != document.title){
+		obs.sytsections = 1
+		obs.sytelements = 0
+		obs.syttitle = document.title
+		obs.newTitle = true
+	}
 	if(sElement.hasAttribute("role") && sElement.getAttribute("role") == "main") {
-		removeElements(sElement.querySelector("#contents"))
+		removeElements(sElement.querySelector("#contents"), obs)
 	}
 }
 
 function browseCallback(r,obs) {
 	const bElement = document.getElementById("page-manager").getElementsByTagName("ytd-browse")[0]
+	if(!obs.hasOwnProperty("sytsections")){
+		obs.sytsections = 1
+		obs.sytelements = 0
+		obs.syttitle = document.title
+		obs.newTitle = true
+	}
 	if(bElement.hasAttribute("role") && bElement.getAttribute("role") == "main") {
-		removeElements(bElement.querySelector("#contents"))
+		removeElements(bElement.querySelector("#contents"), obs)
 	}
 }
 
-function removeElements(contents) {
+function removeElements(contents, obs) {
 	const pContainers = contents.getElementsByTagName("ytd-item-section-renderer")
-	if(pContainers && pContainers.length){
-		removeTags(pContainers[pContainers.length - 1].children[2])
-	}
 
-}
-function removeTags(pElement) {
-	const tSet = new Set(["ytd-reel-shelf-renderer","ytd-shelf-renderer", "ytd-rich-section-renderer", "ytd-playlist-renderer", "ytd-radio-renderer"])
-	let pChildren = pElement.childNodes
-	for (let i = pChildren.length - 1; i >= 0; i--){
-		if(tSet.has(pChildren[i].localName)) {
-			pChildren[i].remove()
+	if(pContainers && pContainers.length){
+		if(pContainers.length > obs.sytsections && obs.newTitle){return}
+		else if (pContainers.length > obs.sytsections) {
+			obs.sytsections = pContainers.length
+			obs.sytelements = 0
+		} else {
+				obs.newTitle = false
+		}
+
+		elementsToCheck = pContainers[pContainers.length - 1].children[2].childNodes
+
+		if(elementsToCheck.length > obs.sytelements){
+			removeTags(elementsToCheck, obs)
 		}
 	}
+}
+
+function removeTags(eList, obs) {
+	const tSet = new Set(["ytd-reel-shelf-renderer","ytd-shelf-renderer", "ytd-rich-section-renderer", "ytd-playlist-renderer", "ytd-radio-renderer","ytd-horizontal-card-list-renderer", "ytd-movie-renderer"])
+	for (let i = eList.length - 1; i >= obs.sytelements; i--){
+		if(tSet.has(eList[i].tagName.toLowerCase())) {
+			eList[i].remove()
+		}
+	}
+	
+	obs.sytelements = eList.length
 }
