@@ -54,6 +54,7 @@ function searchCallback(r,obs) {
 		obs.sytelements = 0
 		obs.syttitle = document.title
 		obs.newTitle = true
+		obs.isSearch = true
 	}
 	if(sElement.hasAttribute("role") && sElement.getAttribute("role") == "main") {
 		removeElements(sElement.querySelector("#contents"), obs)
@@ -66,7 +67,8 @@ function browseCallback(r,obs) {
 		obs.sytsections = 1
 		obs.sytelements = 0
 		obs.syttitle = document.title
-		obs.newTitle = true
+		obs.newTitle = false
+		obs.isSearch = false
 	}
 	if(bElement.hasAttribute("role") && bElement.getAttribute("role") == "main") {
 		removeElements(bElement.querySelector("#contents"), obs)
@@ -74,9 +76,11 @@ function browseCallback(r,obs) {
 }
 
 function removeElements(contents, obs) {
-	const pContainers = contents.getElementsByTagName("ytd-item-section-renderer")
+	let pContainers, elementsToCheck = []
+	if(obs.isSearch) {pContainers = contents.getElementsByTagName("ytd-item-section-renderer")}
+	else {pContainers = contents.childNodes}
 
-	if(pContainers && pContainers.length){
+	if(obs.isSearch && pContainers && pContainers.length){
 		if(pContainers.length > obs.sytsections && obs.newTitle){return}
 		else if (pContainers.length > obs.sytsections) {
 			obs.sytsections = pContainers.length
@@ -84,12 +88,14 @@ function removeElements(contents, obs) {
 		} else {
 				obs.newTitle = false
 		}
-
 		elementsToCheck = pContainers[pContainers.length - 1].children[2].childNodes
 
-		if(elementsToCheck.length > obs.sytelements){
-			removeTags(elementsToCheck, obs)
-		}
+	} else if (!obs.isSearch){
+		elementsToCheck = pContainers
+	} else {return}
+	
+	if(elementsToCheck.length > obs.sytelements){
+		removeTags(elementsToCheck, obs)
 	}
 }
 
@@ -98,8 +104,10 @@ function removeTags(eList, obs) {
 	for (let i = eList.length - 1; i >= obs.sytelements; i--){
 		if(tSet.has(eList[i].tagName.toLowerCase())) {
 			eList[i].remove()
+		} else if(eList[i].tagName.toLowerCase() == "ytd-video-renderer") {
+			videoLink = eList[i].getElementsByTagName("a")
+			if(videoLink.length && videoLink[0].getAttribute("href").match(/shorts/)){eList[i].remove()}
 		}
 	}
-	
 	obs.sytelements = eList.length
 }
