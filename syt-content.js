@@ -14,7 +14,7 @@ function startGenericObserver(r,obs) {
 	let pmEle = document.getElementById("page-manager")
 	if(pmEle){
 		const observer = new MutationObserver(generalCallback)
-		observer.observe(pmEle, {childList: true, attributes: true, subtree: true})
+		observer.observe(pmEle, {childList: true, attributeFilter: ["role"], subtree: true})
 		if(obs != null){obs.disconnect()}
 	} else if(obs == null){startSuperObserver("page-manager")}
 }
@@ -51,15 +51,14 @@ function generalCallback(r,obs){
 		initObs(obs, false, document.title, subtype)
 		isSearch = false
 	} else {return}
-	getElementsToCheck(mainElement.querySelector("#contents"), obs, isSearch, subtype=subtype)
+	getElementsToCheck(mainElement.querySelector("#contents"), obs, isSearch, subtype)
 }
 
-function getElementsToCheck(contents, obs, isSearch, subtype) {
-	const exclusionSet = new Set(["history", "live", "news", "learning", "fashion"])
-	if(subtype && exclusionSet.has(subtype)){return}
-	
+function getElementsToCheck(contents, obs, isSearch, subtype) {	
 	let elementsToCheck, prevElementLength
 	if (!isSearch){
+		const exclusionSet = new Set(["history", "live", "news", "learning", "fashion"])
+		if(subtype && exclusionSet.has(subtype)){return}
 		elementsToCheck = contents.childNodes
 		prevElementLength = (obs.map.get(subtype))[1]
 	} else {
@@ -69,12 +68,14 @@ function getElementsToCheck(contents, obs, isSearch, subtype) {
 			else if (pContainers.length > obs.sytsections) {
 				obs.sytsections = pContainers.length
 				obs.sytelements = 0
-			} else {obs.newTitle = false}
-		} else{
-			return}
+			} else if(obs.newTitle){
+				obs.newTitle = false
+			}
+		} else {return}
 		elementsToCheck = pContainers[pContainers.length - 1].children[2].childNodes
 		prevElementLength = 0
 	}
+
 	if(elementsToCheck.length > prevElementLength) {
 		removeTags(elementsToCheck, obs, prevElementLength, isSearch, subtype)
 	}
@@ -83,22 +84,31 @@ function getElementsToCheck(contents, obs, isSearch, subtype) {
 function removeTags(eList, obs, prevLength, isSearch, subtype, title) {
 	const tSet = new Set(["ytd-reel-shelf-renderer","ytd-shelf-renderer", "ytd-rich-section-renderer", "ytd-playlist-renderer", "ytd-radio-renderer","ytd-horizontal-card-list-renderer", "ytd-movie-renderer"])
 	const cSet = new Set(['For You', 'Shorts', 'Trending Shorts'])
-	const stSet = new Set(["home", "subscriptions"])
 	
 	let curTag
+
 	//homepage regenerates shorts section
-	if(subtype && stSet.has(subtype)){prevLength = 0}
 	for (let i = eList.length - 1; i >= prevLength; i--){
 		curTag = eList[i].tagName.toLowerCase()
-		if(tSet.has(curTag)) {eList[i].remove()} 
-		else if(curTag == "ytd-video-renderer") {
+		
+		if(tSet.has(curTag)) {
+			removeElement(eList[i], isSearch)
+		} else if(curTag == "ytd-video-renderer") {
 			videoLink = eList[i].getElementsByTagName("a")
-			if(videoLink.length && videoLink[0].getAttribute("href").match(/shorts/)){eList[i].remove()}
+			if(videoLink.length && videoLink[0].getAttribute("href").match(/shorts/)){removeElement(eList[i], isSearch)} 
 		} else if(curTag == "ytd-item-section-renderer"){
 			spanExists = eList[i].querySelector("span#title")
-			if(spanExists && cSet.has(spanExists.innerText)){eList[i].remove()}
+			if(spanExists && cSet.has(spanExists.innerText)){removeElement(eList[i], isSearch)}
 		}
 	}
 	if(isSearch){obs.sytelements = eList.length}
 	else {obs.map.set(subtype, [document.title, eList.length])}
+}
+
+function removeElement(e, isSearch) {
+	e.setAttribute("hidden", true)
+}
+
+function print(arr) {
+	console.log(arr.join(' '))
 }
