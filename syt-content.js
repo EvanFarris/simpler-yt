@@ -14,7 +14,7 @@ function startGenericObserver(r,obs) {
 	let pmEle = document.getElementById("page-manager")
 	if(pmEle){
 		const observer = new MutationObserver(generalCallback)
-		observer.observe(pmEle, {childList: true, attributeFilter: ["role"], subtree: true})
+		observer.observe(pmEle, {childList: true, attributeFilter: ["role"], subtree: true, attributeOldValue: true})
 		if(obs != null){obs.disconnect()}
 	} else if(obs == null){startSuperObserver("page-manager")}
 }
@@ -36,7 +36,21 @@ function initObs(obs, isSearch, title, subtype){
 	}
 }
 
-function generalCallback(r,obs){
+function worthyMutations(mutations) {
+	const atToWatch = new Set(["ytd-browse","ytd-search"])
+	const clToWatch = new Set(["ytd-page-manager", "ytd-watch-flexy"])
+	let clMut = mutations.filter((m) => m.type == "childList" && (m.target.id == "contents" || clToWatch.has(m.target.localName)))
+	let atMut = mutations.filter((m) => m.type == "attributes" && atToWatch.has(m.target.localName))
+
+	if(clMut.length || atMut.length){
+		return true
+	}
+
+	return false
+}
+
+function generalCallback(mutations,obs){
+	if(!worthyMutations(mutations)){return}
 	const mainElement = document.getElementById("page-manager").querySelector("ytd-browse[role='main'], ytd-search[role='main']")
 	if(!mainElement){return}
 	
@@ -54,7 +68,7 @@ function generalCallback(r,obs){
 	getElementsToCheck(mainElement.querySelector("#contents"), obs, isSearch, subtype)
 }
 
-function getElementsToCheck(contents, obs, isSearch, subtype) {	
+function getElementsToCheck(contents, obs, isSearch, subtype) {
 	let elementsToCheck, prevElementLength
 	if (!isSearch){
 		const exclusionSet = new Set(["history", "live", "news", "learning", "fashion"])
@@ -86,7 +100,7 @@ function removeTags(eList, obs, prevLength, isSearch, subtype, title) {
 	const cSet = new Set(['For You', 'Shorts', 'Trending Shorts'])
 	
 	let curTag
-
+	//TODO: bigyoodle/masthead-ad are revealed on all tab of home page, not other tabs
 	//homepage regenerates shorts section
 	for (let i = eList.length - 1; i >= prevLength; i--){
 		curTag = eList[i].tagName.toLowerCase()
@@ -109,6 +123,6 @@ function removeElement(e) {
 	e.setAttribute("hidden", true)
 }
 
-function print(arr) {
+function cprint(arr) {
 	console.log(arr.join(' '))
 }
