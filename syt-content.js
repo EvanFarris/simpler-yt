@@ -92,20 +92,20 @@ function removeTags(eList, obs, prevLength, isSearch, subtype, title) {
 		curTag = eList[i].tagName.toLowerCase()
 		
 		if(tSet.has(curTag)) {
-			removeElement(eList[i], isSearch)
+			removeElement(eList[i])
 		} else if(curTag == "ytd-video-renderer") {
 			videoLink = eList[i].getElementsByTagName("a")
-			if(videoLink.length && videoLink[0].getAttribute("href").match(/shorts/)){removeElement(eList[i], isSearch)} 
+			if(videoLink.length && videoLink[0].getAttribute("href").match(/shorts/)){removeElement(eList[i])} 
 		} else if(curTag == "ytd-item-section-renderer"){
 			spanExists = eList[i].querySelector("span#title")
-			if(spanExists && cSet.has(spanExists.innerText)){removeElement(eList[i], isSearch)}
+			if(spanExists && cSet.has(spanExists.innerText)){removeElement(eList[i])}
 		}
 	}
 	if(isSearch){obs.sytelements = eList.length}
 	else {obs.map.set(subtype, [document.title, eList.length])}
 }
 
-function removeElement(e, isSearch) {
+function removeElement(e) {
 	e.setAttribute("hidden", true)
 }
 
