@@ -82,7 +82,7 @@ function getElementsToCheck(contents, obs, isSearch, subtype) {
 
 function removeTags(eList, obs, prevLength, isSearch, subtype, title) {
 	const tSet = new Set(["ytd-reel-shelf-renderer","ytd-shelf-renderer", "ytd-rich-section-renderer", "ytd-playlist-renderer", "ytd-radio-renderer","ytd-horizontal-card-list-renderer", "ytd-movie-renderer"])
-	const cSet = new Set(['For You', 'Shorts'])
+	const cSet = new Set(['For You', 'Shorts', 'Trending Shorts'])
 	const stSet = new Set(["home", "subscriptions"])
 	
 	let curTag
