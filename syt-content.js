@@ -42,7 +42,7 @@ function worthyMutations(mutations) {
 	const clToWatch = new Set(["ytd-page-manager", "ytd-watch-flexy"])
 	let clMut = mutations.filter((m) => m.type == "childList" && (m.target.id == "contents" || clToWatch.has(m.target.localName)))
 	let atMut = mutations.filter((m) => m.type == "attributes" && atToWatch.has(m.target.localName))
-
+	console.log(clMut)
 	if(clMut.length || atMut.length){
 		return true
 	}
@@ -75,7 +75,8 @@ function getElementsToCheck(contents, obs, isSearch, subtype) {
 		const exclusionSet = new Set(["history", "live", "news", "learning", "fashion"])
 		if(subtype && exclusionSet.has(subtype)){return}
 		elementsToCheck = contents.childNodes
-		prevElementLength = (obs.map.get(subtype))[1]
+		if(subtype=="home"){prevElementLength = 0}
+		else{prevElementLength = (obs.map.get(subtype))[1]}
 	} else {
 		let pContainers = contents.getElementsByTagName("ytd-item-section-renderer")
 		if(pContainers && pContainers.length){
