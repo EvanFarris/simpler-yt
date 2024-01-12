@@ -26,6 +26,7 @@ function initObs(obs, isSearch, title, subtype){
 			obs.sytelements = 0
 			obs.syttitle = title
 			obs.newTitle = true
+			obs.noInc = false
 		}
 		obs.prevSearch = true
 	} else{
@@ -78,6 +79,10 @@ function getElementsToCheck(contents, obs, isSearch, subtype) {
 	} else {
 		let pContainers = contents.getElementsByTagName("ytd-item-section-renderer")
 		if(pContainers && pContainers.length){
+			if(obs.newTitle && !obs.noInc && pContainers[0].querySelector("#contents") && pContainers[0].querySelector("#contents").childNodes.length == 1) {
+				obs.sytsections++
+				obs.noInc = true
+			}
 			if(pContainers.length > obs.sytsections && obs.newTitle){return}
 			else if (pContainers.length > obs.sytsections) {
 				obs.sytsections = pContainers.length
@@ -89,7 +94,6 @@ function getElementsToCheck(contents, obs, isSearch, subtype) {
 		elementsToCheck = pContainers[pContainers.length - 1].children[2].childNodes
 		prevElementLength = 0
 	}
-
 	if(elementsToCheck.length > prevElementLength) {
 		removeTags(elementsToCheck, obs, prevElementLength, isSearch, subtype)
 	}
@@ -100,7 +104,6 @@ function removeTags(eList, obs, prevLength, isSearch, subtype, title) {
 	const cSet = new Set(['For You', 'Shorts', 'Trending Shorts'])
 	
 	let curTag
-	//TODO: bigyoodle/masthead-ad are revealed on all tab of home page, not other tabs
 	//homepage regenerates shorts section
 	for (let i = eList.length - 1; i >= prevLength; i--){
 		curTag = eList[i].tagName.toLowerCase()
@@ -124,5 +127,5 @@ function removeElement(e) {
 }
 
 function cprint(arr) {
-	console.log(arr.join(' '))
+	console.log(arr.join(' | '))
 }
